@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y p7zip-full
       - name: Make zip (passworded)
-        working-directory: ./extension
+        working-directory: ./relief_ticket_edge_extension
         run: |
           zip_name="../relief-tool.zip"
           if [ -n "${{ secrets.ZIP_PASSWORD }}" ]; then
