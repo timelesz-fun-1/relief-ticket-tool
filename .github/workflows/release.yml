@@ -17,9 +17,9 @@ jobs:
         run: |
           zip_name="../relief-tool.zip"
           if [ -n "${{ secrets.ZIP_PASSWORD }}" ]; then
-            7z a -tzip "$zip_name" ./* -p"${{ secrets.ZIP_PASSWORD }}" -mhe=on
+            7z a -tzip "$zip_name" ./* -p"${{ secrets.ZIP_PASSWORD }}" -mem=AES256 -mx=9
           else
-            7z a -tzip "$zip_name" ./*
+            7z a -tzip "$zip_name" ./* -mx=9
           fi
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
