@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RELIEF Ticket 購入補助 拡張 — ヘルプ</title>
+  <style>
+    :root{
+      --fg:#111827; --muted:#6b7280; --pri:#0ea5e9; --ok:#16a34a; --bg:#ffffff; --card:#f9fafb; --bd:#e5e7eb;
+    }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:14px/1.6 system-ui,"Noto Sans JP",sans-serif;}
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px 60px;}
+    h1{font-size:22px;margin:0 0 10px;}
+    h2{font-size:18px;margin:28px 0 8px;padding-top:8px;border-top:1px solid var(--bd);}
+    h3{font-size:15px;margin:18px 0 6px;}
+    .muted{color:var(--muted)}
+    .card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;margin:10px 0;}
+    code,kbd{background:#f3f4f6;border:1px solid var(--bd);border-radius:6px;padding:0 4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+    ul{margin:8px 0 8px 20px}
+    .toc a{display:inline-block;margin:2px 10px 2px 0}
+    .badge{display:inline-block;background:#ecfeff;color:#0369a1;border:1px solid #bae6fd;border-radius:999px;padding:0 8px;font-size:12px;margin-left:6px}
+    .ok{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+    .warn{background:#fff7ed;color:#7c2d12;border-color:#fed7aa}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    a{color:#0369a1;text-decoration:none} a:hover{text-decoration:underline}
+
+    /* section figures */
+    .fig{margin:10px 0;border:1px solid var(--bd);border-radius:10px;background:#fff;overflow:hidden}
+    .fig > a{display:block}
+    .fig img{display:block;width:100%;height:auto}
+    .figcap{padding:8px 10px;font-size:12px;color:var(--muted)}
+    .grid-2{display:grid;grid-template-columns:1fr;gap:12px}
+    @media (min-width:860px){ .grid-2{grid-template-columns:1fr 1fr;} }
+
+    /* Quickstart steps */
+    .steps{counter-reset:st}
+    .step{margin:16px 0 22px}
+    .step h3{display:flex;align-items:center;gap:8px;margin:8px 0 6px}
+    .step .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--pri);color:#fff;font-weight:700}
+
+    /* lightbox (zoom) */
+    dialog#zoom{border:none;padding:0;width:min(92vw,1200px)}
+    dialog#zoom::backdrop{background:rgba(0,0,0,.6)}
+    .zoom-wrap{position:relative}
+    .zoom-wrap img{width:100%;height:auto;display:block}
+    .zoom-close{position:absolute;top:6px;right:6px;border:none;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;width:32px;height:32px;cursor:pointer;font-size:18px}
+
+    /* placeholder when image missing */
+    .placeholder{display:flex;align-items:center;justify-content:center;min-height:200px;background:#f3f4f6;color:#9ca3af}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>RELIEF Ticket 購入補助 拡張 — ヘルプ <span class="badge">ガイド</span></h1>
+    <p class="muted">このページはオプション画面上の「ヘルプ」リンクからいつでも開けます。</p>
+    <h3><font color="red">※ 本ツールは非公式です。ご利用は自己責任でお願いします。</font></h3>
+
+    <div class="card toc">
+      <b>目次</b><br>
+      <a href="#quickstart">クイックスタート</a>
+      <a href="#calendar">販売期間カレンダー</a>
+      <a href="#notify">通知の設定（ntfy / Discord / デスクトップ）</a>
+      <a href="#open">選択した公演をタブで開く</a>
+      <a href="#privacy">保存データとプライバシー</a>
+    </div>
+
+    <!-- Quickstart -->
+    <h2 id="quickstart">クイックスタート（インストール〜初期設定）</h2>
+
+    <div class="card">
+      <h3>0) 事前に用意するもの</h3>
+      <ul>
+        <li>Microsoft Edge（最新版）</li>
+        （Chromeでも動作する想定ですが、作成者は原則Edge環境で利用していました）
+        <li>この拡張のフォルダ一式（<span class="mono">manifest.json / content.js / options.html / options.js / popup.html / popup.js / bg.js / icons/</span> など）</li>
+      </ul>
+    </div>
+
+    <div class="steps">
+      <div class="step" id="s1">
+        <h3><span class="n">1</span> Edgeに拡張を読み込む（edge://extensions）</h3>
+        <div class="fig">
+          <a href="help_images/step1_extensions.png" data-zoom>
+            <img src="help_images/step1_extensions.png" alt="Edge拡張の管理ページ" class="ph-check" data-ph="STEP1: edge://extensions の画像を help_images に置いてください">
+          </a>
+          <div class="figcap">アドレスバーに <code>edge://extensions</code> と入力して開きます。</div>
+        </div>
+      </div>
+
+      <div class="step" id="s2">
+        <h3><span class="n">2</span> デベロッパーモードをオン</h3>
+        <div class="fig">
+          <a href="help_images/step2_devmode.png" data-zoom>
+            <img src="help_images/step2_devmode.png" alt="デベロッパーモードON" class="ph-check" data-ph="STEP2: デベロッパーモードの画像を help_images に置いてください">
+          </a>
+          <div class="figcap">画面左側の「デベロッパー モード」をオンにします。</div>
+        </div>
+      </div>
+
+      <div class="step" id="s3">
+        <h3><span class="n">3</span> 「展開して読み込む」からフォルダを選択</h3>
+        <div class="fig">
+          <a href="help_images/step3_load_unpacked.png" data-zoom>
+            <img src="help_images/step3_load_unpacked.png" alt="展開して読み込む" class="ph-check" data-ph="STEP3: 展開して読み込む の画像を help_images に置いてください">
+          </a>
+          <div class="figcap">ZIPは不可。解凍済みのフォルダ（<code>manifest.json</code> が入っている場所）を選んでください。</div>
+        </div>
+      </div>
+
+      <div class="step" id="s4">
+        <h3><span class="n">4</span> オプション画面を開く</h3>
+        <li>拡張機能の詳細画面からオプションを開いてください。</li>
+        <div class="fig">
+          <a href="help_images/step4_options.png" data-zoom>
+            <img src="help_images/step4_options.png" alt="拡張オプション画面" class="ph-check" data-ph="STEP4: オプション画面の画像を help_images に置いてください">
+          </a>
+          <div class="figcap">拡張の「詳細」→「拡張機能のオプション」。上の「ヘルプ」リンクから本ページに戻れます。</div>
+        </div>
+        <li>オプション画面は、ブラウザ画面右上のジグソーパズルのような所からも表示させることが可能です。</li>
+        <div class="fig">
+          <a href="help_images/step4_options2.png" data-zoom>
+            <img src="help_images/step4_options2.png" alt="拡張オプション画面" class="ph-check" data-ph="STEP4: オプション画面の画像を help_images に置いてください">
+          </a>
+          <div class="figcap">拡張の「詳細」→「拡張機能のオプション」。上の「ヘルプ」リンクから本ページに戻れます。</div>
+        </div>
+
+      </div>
+
+      <div class="step" id="s5">
+        <h3><span class="n">5</span> 情報を最新化 → ツリー表示</h3>
+        <li>情報を最新化ボタンを押すと、裏でrelief-ticketのサイトを開き、アーティスト・公演の一覧を取得します。</li>
+        <li>取得した情報をもとに、公演の一覧がツリー表示されます。</li>
+        <div class="fig">
+          <a href="help_images/step5_refresh.png" data-zoom>
+            <img src="help_images/step5_refresh.png" alt="情報を最新化" class="ph-check" data-ph="STEP5: 情報を最新化 の画像を help_images に置いてください">
+          </a>
+          <div class="figcap">裏で <code>relief-ticket.jp</code> を巡回し、アーティスト→公演→日付・会場 を取得します。</div>
+        </div>
+      </div>
+
+      <div class="step" id="s6">
+        <h3><span class="n">6</span> 取りたい日付・会場にチェック</h3>
+        <li>一覧の中で、チケットを取りたい公演にチェックをつけます。</li>
+        <li>上位のチェックを付けることで、配下全てにチェックをつけることもできます。</li>
+        <li>リセール販売期間中の公演には、「販売期間中」のアイコンがつきます。</li>
+        <div class="fig">
+          <a href="help_images/step6_select.png" data-zoom>
+            <img src="help_images/step6_select.png" alt="ツリーで選択" class="ph-check" data-ph="STEP6: ツリー選択の画像を help_images に置いてください">
+          </a>
+          <div class="figcap">選択は変更都度で自動保存。上位にチェックで配下一括ON。</div>
+        </div>
+      </div>
+      
+      <div class="step" id="s7">
+        <h3><span class="n">7</span> 希望枚数、通知設定を行う</h3>
+        <li>「希望枚数」の項目を選択します。（１枚のみか、２枚のみか、どちらでも、のいずれかを選択します。</li>
+        <div class="fig">
+          <a href="help_images/step7_mount_select.png" data-zoom>
+            <img src="help_images/step7_mount_select.png" alt="枚数選択イメージ" class="ph-check" data-ph="STEP7: 枚数選択イメージの画像を help_images に置いてください">
+          </a>
+          <div class="figcap">「希望枚数」の項目を選択します。（１枚のみか、２枚のみか、どちらでも、のいずれかを選択します。</div>
+        </div>
+      </div>
+      <div class="step" id="s8">
+        <h3><span class="n">8</span> 通知方法を選択する</h3>
+        <a href="#notify">通知の設定（ntfy / Discord / デスクトップ）</a>
+        
+      </div>
+      <div class="step" id="s9">
+        <h3><span class="n">9</span> 監視：イベントページを開いて待つ</h3>
+        <li>オプションページ一番上の「開始／停止」の「有効にする」をONにします。</li>
+        <li>その状態で、対象の公演ページ（例：https://relief-ticket.jp/events/artist/11/101）を開くと、自動でリロード監視、指定条件の公演・枚数を検知したらボタンクリック・通知を行います。</li>
+        <ul>
+        <h3><font color="red">※ 最初のクリック以降、SMS認証より先は、ユーザーにより操作をしてください。</font></h3>
+        </ul>
+        <li>処理を停止したい場合は、「有効にする」をOFFにしてください。</li>
+        <li><a href="#open">「タブ起動（監視を始める）」</a>から一括で対象のタブを開き即監視を開始することもできます。</li>
+        <div class="fig">
+          <a href="help_images/step7_monitor.png" data-zoom>
+            <img src="help_images/step7_monitor.png" alt="監視ページ例" class="ph-check" data-ph="STEP7: 監視ページの画像を help_images に置いてください">
+          </a>
+          <div class="figcap">在庫が出たら、希望枚数を自動選択→通知→購入ボタンクリックまで自動で実行。</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Calendar -->
+    <h2 id="calendar">販売期間カレンダー</h2>
+    <li>参考として、取得した公演の販売されている期間を、カレンダーに表示しています。</li>
+    <li>見たい日付にマウスカーソルを合わせると、その日にどの公演のリセール販売がされるかが表示されます。</li>
+    <div class="fig">
+      <a href="help_images/calendar_overview.png" data-zoom>
+        <img src="help_images/calendar_overview.png" alt="販売期間カレンダー" class="ph-check" data-ph="カレンダーの画像を help_images に置いてください">
+      </a>
+      <div class="figcap">公演日の<b>5日前11:00</b>〜<b>2日前11:59</b>（JST）を着色。セル右下は該当件数、カーソルを当てると内訳も表示。</div>
+    </div>
+
+    <!-- Notify -->
+    <h2 id="notify">通知の設定（ntfy / Discord / デスクトップ）</h2>
+
+    <h3>ntfy <span class="badge ok">おすすめ</span></h3>
+    <li>「トピック名」という項目を任意で自分の好みに設定することで、スマホアプリやデスクトップで検知した通知を受け取ることができます。</li>
+    <li>無料で利用することができます。</li>
+    <br>
+    
+      <div class="fig">
+        ＜PCブラウザで受け取る場合＞
+        <li>自身で設定したトピック名のURL（例：https://ntfy.sh/relief-ticket-abcd）にアクセスします。</li>
+        <li>以下のような画面が出て、オプションページのテスト通知や、実際に検知したチケットの情報が表示されるようになります。</li>
+        <a href="help_images/notify_ntfy_options.png" data-zoom>
+          <img src="help_images/notify_ntfy_options.png" alt="ntfyトピック設定" class="ph-check" data-ph="ntfy設定画像を help_images に置いてください">
+        </a>
+        <div class="figcap">任意のトピック名を入力（例：<code>relief-ticket-abcd</code>）。「テスト通知を送る」で通信確認。</div>
+      </div>
+      <div class="fig">
+        ＜スマホアプリで受け取る場合＞
+        <li>アプリストアでntfy.shをインストールします。</li>
+        <li>自身で設定したトピック名の購読、通知許可をします。（例：https://ntfy.sh/relief-ticket-abcd）</li>
+        <li>オプションページのテスト通知や、実際に検知したチケットの情報が通知されるようになります。</li>
+      </div>
+
+
+    <h3>Discord</h3>
+    <div class="fig">
+      <li>Webhook URL を貼り付けるだけでOK。検出内容がテキストで投稿されます。</li>
+    </div>
+
+    <h3>デスクトップ通知（常に有効）</h3>
+    <li>このツールが稼働しているブラウザに対して、通知が投稿されます。投稿された通知はウィンドウ右下に出てきます。</li>
+    <div class="fig">
+      <a href="help_images/notify_desktop.png" data-zoom>
+        <img src="help_images/notify_desktop.png" alt="デスクトップ通知" class="ph-check" data-ph="デスクトップ通知の画像を help_images に置いてください">
+      </a>
+      <div class="figcap">ntfy/Discord の設定に関わらずPCにも通知。クリックでチェックアウト直リンクを開きます。</div>
+    </div>
+
+
+
+    <!-- Open tabs -->
+    <h2 id="open">選択した公演をタブで開く</h2>
+    <li>チェックした日付・会場がある公演の画面を一括で開いて、一斉に監視を開始することができます。</li>
+    <h3><font color="red">※ オプションページ一番上の「開始／停止」の「有効にする」をONにしていないと、タブが開かれても監視が始まりませんのでご注意ください。</font></h3>
+    <div class="fig">
+      <a href="help_images/open_tabs.png" data-zoom>
+        <img src="help_images/open_tabs.png" alt="選択公演のタブを開く" class="ph-check" data-ph="選択タブを開くの画像を help_images に置いてください">
+      </a>
+      <div class="figcap">「別ウィンドウ」「ピン留め」「最大タブ数」を指定して一括オープンできます。</div>
+    </div>
+
+
+
+    <!-- Privacy -->
+    <h2 id="privacy">保存データとプライバシー</h2>
+    <div class="grid-2">
+      <div class="card">
+        <ul>
+          <li>設定（ON/OFF・希望枚数・通知設定・リロード/スクロール）は <b>chrome.storage.sync</b>。</li>
+          <li>取得したアーティスト/公演一覧と選択済み公演は <b>chrome.storage.local</b>。</li>
+          <li>外部送信は、あなたが設定した通知先（ntfy/Discord）に対してのみ実施します。</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="muted small">※ 本ツールは非公式です。ご利用は自己責任でお願いします。</p>
+  </div>
+
+  <!-- Lightbox dialog -->
+  <dialog id="zoom">
+    <div class="zoom-wrap">
+      <button class="zoom-close" aria-label="閉じる">×</button>
+      <img alt="">
+    </div>
+  </dialog>
+
+<script src="help.js" defer></script>
+
+</body>
+</html>

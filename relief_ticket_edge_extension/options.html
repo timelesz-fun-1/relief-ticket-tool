@@ -1,0 +1,195 @@
+
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>RELIEF Ticket 設定</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans JP", "Yu Gothic UI", sans-serif; margin: 16px; }
+    h1 { font-size: 18px; margin-bottom: 8px; }
+    section { margin: 16px 0; padding: 12px; border: 1px solid #e5e7eb; border-radius: 12px; }
+    button { padding: 8px 12px; border-radius: 10px; border: 1px solid #d1d5db; background: #f8fafc; cursor: pointer; }
+    .hint { color:#6b7280; font-size: 12px; }
+    .tree { line-height: 1.6; }
+    .row-flex { display:flex; align-items:center; gap:8px; }
+    .artist, .event, .show { margin: 6px 0; }
+    .event   { margin-left: 16px; }
+    .show    { margin-left: 32px; white-space: nowrap; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display:none; }
+    .caret::before { content:"▸"; display:inline-block; width:1em; transition: transform .2s; }
+    details[open] .caret::before { transform: rotate(90deg); }
+    .label { display:inline-block; }
+    pre { background:#f8fafc; padding:12px; border-radius:8px; overflow:auto; max-height:260px; }
+    .controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .autosave { font-size:12px; color:#10b981; margin-left:8px; }
+    input[type=number]{ width:70px; }
+    .badge-sale{ display:inline-block; margin-left:6px; padding:0 6px;
+      font-size:11px; line-height:18px; border-radius:10px; background:#16a34a; color:#fff; vertical-align:middle; }
+
+    .cal-wrap{ display:flex; flex-wrap:wrap; gap:16px; }
+    .cal{ border:1px solid #e5e7eb; border-radius:10px; padding:10px 10px 12px; min-width:260px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,.02);}
+    .cal-head{ display:flex; justify-content:center; gap:8px; align-items:baseline; margin-bottom:6px; }
+    .cal-title{ font-weight:700; }
+    .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .cal-dow, .cal-day{ text-align:center; font-size:12px; padding:6px 0; border-radius:8px; }
+    .cal-dow{ color:#6b7280; }
+    .cal-day{
+      position: relative;
+      text-align: left;
+      min-height: 44px;          /* 38→44でゆとり */
+      padding: 4px 6px;          /* 余白を明確化 */
+      font-size: 12px;
+    }
+    .cal-day.muted{ background:#fcfcfc; color:#9ca3af; }
+    .cal-day.sale{ background:#ecfdf5; border-color:#10b981; }
+    .cal-count{
+      position: absolute;
+      right: 4px;
+      bottom: 3px;
+      font-size: 10px;
+      line-height: 16px;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: #16a34a;
+      color: #fff;
+    }
+    /* 日付番号は左上に固定 */
+    .cal-num{
+      position: absolute;
+      left: 6px;
+      top: 4px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: inherit;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>RELIEF Ticket 自動購入補助 — 設定</h1>
+  <br>
+  <a href="help.html" target="_blank" rel="noopener"
+  style="float:left; padding:4px 8px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; font-size:12px; text-decoration:none;">
+  ヘルプ
+</a>
+
+  <section>
+    <h2>開始／停止 <span id="saveIndicator" class="autosave" style="display:none;">保存しました</span></h2>
+    <label class="row-flex"><input type="checkbox" id="enabled"> <span>有効にする（開始）</span></label>
+  </section>
+
+  <section>
+    <div class="controls">
+      <h2 style="margin:0;">アーティスト／公演／日付・会場</h2>
+      <button id="refresh">情報を最新化</button>
+      <button id="reloadTree">再読込</button>
+      <button id="toggleDebug">デバッグ情報</button>
+      <span class="hint">（変更は自動保存されます）</span>
+    </div>
+    <p class="hint">※ 「販売期間中」＝公演日の5日前11:00〜2日前11:59（JST）</p>
+    <div id="catalogTree" class="tree"></div>
+    <details id="saleCalendarBlock" style="margin-top:14px;">
+      <summary class="row-flex">
+        <span class="caret"></span>
+        <b>販売期間カレンダー（参考）</b>
+      </summary>
+      <div class="hint" style="margin:6px 0 10px;">
+        ※ 販売期間は <b>公演日の5日前11:00〜2日前11:59（JST）</b> を表示します。<br>
+        ※ セルの数字は、その日に販売期間に<em>かかっている</em>件数です（内訳はセルをホバー）。
+      </div>
+      <div id="saleCalendar" class="cal-wrap"></div>
+    </details>
+    <p id="refreshStatus" class="hint"></p>
+    <div id="debugBox" style="display:none;">
+      <h3>デバッグ情報</h3>
+      <pre id="debugJson"></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>希望枚数</h2>
+    <select id="desiredCounts">
+      <option value="1">1枚</option>
+      <option value="2">2枚</option>
+      <option value="1,2">どちらでも</option>
+    </select>
+    <span class="hint">（変更は自動保存）</span>
+  </section>
+
+  <section>
+    <h2>通知</h2>
+    <label>通知方法</label>
+    <select id="notifyType">
+      <option value="ntfy">ntfy.sh（無料・登録不要）</option>
+      <option value="discord">Discord Webhook</option>
+      <option value="none">なし</option>
+    </select>
+
+    <div id="ntfyConf">
+      <label class="row-flex"><span>ntfyトピック名</span><input id="ntfyTopic" type="text" placeholder="relief-ticket-xxxxx" /></label>
+    </div>
+    <div id="discordConf" style="display:none;">
+      <label class="row-flex"><span>Discord Webhook URL</span><input id="discordWebhookUrl" type="text" placeholder="https://discord.com/api/webhooks/..." /></label>
+    </div>
+    <span class="hint">（変更は自動保存）</span>
+    <div style="margin-top:8px">
+      <details>
+        <summary class="row-flex"><span class="caret"></span><b>ntfy.sh のかんたん使い方</b></summary>
+        <ol class="hint" style="margin-top:6px;">
+          <li>任意のトピック名を決めて、上の「ntfyトピック名」に入力（例：<code>relief-ticket-abc123</code>）。</li>
+          <li>スマホに ntfy アプリを入れて、<code>https://ntfy.sh/&lt;トピック名&gt;</code> を購読。通知を許可。</li>
+          <li>この拡張は検出時に <code>https://ntfy.sh/&lt;トピック名&gt;</code> にPOSTします。誰でも同じトピックを知っていれば読めるので、ランダムな名前にしてください。</li>
+        </ol>
+        <div class="controls"><button id="testNtfy" type="button">テスト通知を送る</button><span id="testNtfyStatus" class="hint"></span></div>
+        <pre id="testNtfyLog" class="hint" style="margin-top:6px; white-space:pre-wrap;"></pre>
+      </details>
+    </div>
+  </section>
+
+  
+  <section>
+    <h2>人間らしいスクロール</h2>
+    <label class="row-flex"><input type="checkbox" id="scrollEnabled"> 有効にする</label>
+    <div class="row-flex">
+      <span>スクロール量（px）：</span>
+      <input type="number" id="scrollMin" min="0" value="100"> 〜
+      <input type="number" id="scrollMax" min="0" value="5000">
+      <label class="row-flex"><input type="checkbox" id="scrollSmooth" checked> なめらかに</label>
+    </div>
+    <p class="hint">ページ読み込み直後とリロード直前にランダムにスクロールします。</p>
+  </section>
+
+  <section>
+    <h2>自動リロード</h2>
+    <label class="row-flex"><input type="checkbox" id="reloadEnabled"> 有効にする</label>
+    <div class="row-flex">
+      <span>インターバル（秒）：</span>
+      <input type="number" id="reloadMin" min="1" value="3"> 〜
+      <input type="number" id="reloadMax" min="1" value="7">
+    </div>
+    <p class="hint">対象イベントページで、選択済みの「日付・会場」に購入ボタンが見つからない場合、指定範囲でランダム秒リロードします。エラー画面（502/504/アクセス集中）は短い間隔で再試行します。</p>
+  </section>
+
+  <section>
+    <h2>タブ起動（監視を始める）</h2>
+    <div class="controls">
+      <button id="openSelectedTabs">選択公演のタブを開く</button>
+      <label class="row-flex"><input type="checkbox" id="openInNewWindow"> 新しいウィンドウで開く</label>
+      <label class="row-flex"><input type="checkbox" id="openPinned"> ピン留めする</label>
+      <label class="row-flex">最大タブ数<input type="number" id="maxTabs" min="1" max="40" value="15" style="width:64px;"></label>
+    </div>
+    <p class="hint" id="openStatus"></p>
+  </section>
+
+  <section>
+    <h2>データの削除</h2>
+    <p class="hint">保存済みのアーティスト/公演一覧（catalog）と選択した公演（selectedShows）を削除します。</p>
+    <button id="purgeData">catalog と選択公演を削除</button>
+    <p class="hint" id="purgeStatus"></p>
+  </section>
+
+  <script src="options.js"></script>
+</body>
+</html>

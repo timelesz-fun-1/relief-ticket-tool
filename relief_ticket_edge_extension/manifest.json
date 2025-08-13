@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "RELIEF Ticket 自動購入補助 (Edge)",
+  "version": "1.0.0",
+  "description": "RELIEF Ticketにおいて、希望した公演の自動クリックの補助ツール（※最初のクリックのみで、以降の操作は手動です）",
+  "permissions": [
+    "notifications",
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "windows"
+  ],
+  "host_permissions": [
+    "https://relief-ticket.jp/*",
+    "https://ntfy.sh/*",
+    "https://discord.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://relief-ticket.jp/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options.html",
+  "action": {
+    "default_title": "RELIEF Ticket",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "128": "icons/icon128.png"
+  },
+    "background": {
+    "service_worker": "bg.js"
+  }
+}
