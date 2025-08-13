@@ -1,0 +1,68 @@
+name: Auto Release on push
+
+on:
+  push:
+    branches: [ main ]
+    # 拡張の中身が変わった時だけ動かす
+    paths:
+      - 'relief_ticket_edge_extension/**'
+      - '.github/workflows/auto-release.yml'
+  workflow_dispatch: {}  # 手動でも走らせられる
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq p7zip-full
+
+      - name: Read version from manifest.json
+        id: ver
+        run: |
+          VER=$(jq -r '.version' extension/manifest.json)
+          echo "ver=$VER" >> $GITHUB_OUTPUT
+
+      - name: Build archives (ZIP: 互換 / 7z: セキュア)
+        run: |
+          cd extension
+          if [ -n "${{ secrets.ZIP_PASSWORD }}" ]; then
+            # 互換：OS標準解凍でもPW入力が出る ZipCrypto
+            7z a -tzip ../relief-tool.zip ./* -p"${{ secrets.ZIP_PASSWORD }}" -mem=ZipCrypto -mx=9
+            # セキュア：7z（ヘッダ暗号化でファイル名も秘匿）
+            7z a -t7z  ../relief-tool.7z  ./* -p"${{ secrets.ZIP_PASSWORD }}" -mhe=on -mx=9
+          else
+            7z a -tzip ../relief-tool.zip ./* -mx=9
+          fi
+
+      # 既に同じタグがあればユニークにする（連番で衝突回避）
+      - name: Compose tag & name
+        id: tag
+        run: |
+          BASE="v${{ steps.ver.outputs.ver }}"
+          TAG="${BASE}-${{ github.run_number }}"
+          NAME="${BASE} (build ${{ github.run_number }})"
+          echo "tag=$TAG"   >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name:     ${{ steps.tag.outputs.name }}
+          files: |
+            relief-tool.zip
+            relief-tool.7z
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
