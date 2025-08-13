@@ -30,7 +30,7 @@ jobs:
       - name: Read version from manifest.json
         id: ver
         run: |
-          VER=$(jq -r '.version' extension/manifest.json)
+          VER=$(jq -r '.version' relief_ticket_edge_extension/manifest.json)
           echo "ver=$VER" >> $GITHUB_OUTPUT
 
       - name: Build archives
