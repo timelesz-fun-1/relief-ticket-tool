@@ -33,7 +33,7 @@ jobs:
           VER=$(jq -r '.version' extension/manifest.json)
           echo "ver=$VER" >> $GITHUB_OUTPUT
 
-      - name: Build archives (ZIP: 互換 / 7z: セキュア)
+      - name: Build archives
         run: |
           cd extension
           if [ -n "${{ secrets.ZIP_PASSWORD }}" ]; then
