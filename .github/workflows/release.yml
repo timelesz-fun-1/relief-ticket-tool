@@ -1,0 +1,32 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Tag (e.g. 1.3.9)"
+        required: true
+        default: "1.0.0"
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y p7zip-full
+      - name: Make zip (passworded)
+        working-directory: ./extension
+        run: |
+          zip_name="../relief-tool.zip"
+          if [ -n "${{ secrets.ZIP_PASSWORD }}" ]; then
+            7z a -tzip "$zip_name" ./* -p"${{ secrets.ZIP_PASSWORD }}" -mhe=on
+          else
+            7z a -tzip "$zip_name" ./*
+          fi
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
+          files: relief-tool.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
