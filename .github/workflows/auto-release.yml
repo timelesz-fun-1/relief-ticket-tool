@@ -35,7 +35,7 @@ jobs:
 
       - name: Build archives
         run: |
-          cd extension
+          cd relief_ticket_edge_extension
           if [ -n "${{ secrets.ZIP_PASSWORD }}" ]; then
             # 互換：OS標準解凍でもPW入力が出る ZipCrypto
             7z a -tzip ../relief-tool.zip ./* -p"${{ secrets.ZIP_PASSWORD }}" -mem=ZipCrypto -mx=9
