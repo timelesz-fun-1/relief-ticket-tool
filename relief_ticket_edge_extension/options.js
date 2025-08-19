@@ -7,7 +7,8 @@
     desiredCounts: [2],
     notifier: { type: "ntfy", ntfyTopic: "relief-ticket", discordWebhookUrl: "" },
     reload: { enabled: true, minSec: 3, maxSec: 7 },
-    scroll: { enabled: true, minPx: 100, maxPx: 5000, smooth: true }
+    scroll: { enabled: true, minPx: 100, maxPx: 5000, smooth: true },
+    cooldownSec: 25
   };
 
   function getSync(){ return new Promise(r=>chrome.storage.sync.get(defaultsSync, r)); }
@@ -462,6 +463,7 @@
     $("#scrollMin").value = sync.scroll?.minPx ?? 100;
     $("#scrollMax").value = sync.scroll?.maxPx ?? 5000;
     $("#scrollSmooth").checked = (sync.scroll?.smooth !== false);
+    $("#cooldownSec").value = sync.cooldownSec ?? 25; // ★追加
     toggleNotifierConfigs();
     $("#debugJson").textContent = JSON.stringify(local.catalog || {}, null, 2);
     renderTree(local.catalog || {artists:[]}, local.selectedShows || []);
@@ -479,7 +481,9 @@
     const enabled = $("#enabled").checked;
     const reload = { enabled: $("#reloadEnabled").checked, minSec: Math.max(1, parseInt($("#reloadMin").value||"3",10)), maxSec: Math.max(1, parseInt($("#reloadMax").value||"7",10)) };
     const scroll = { enabled: $("#scrollEnabled").checked, minPx: Math.max(0, parseInt($("#scrollMin").value||"100",10)), maxPx: Math.max(0, parseInt($("#scrollMax").value||"5000",10)), smooth: $("#scrollSmooth").checked };
-    await setSync({ enabled, desiredCounts: desired, notifier: {type, ntfyTopic, discordWebhookUrl}, reload, scroll });
+    const cooldownSec = Math.max(5, Math.min(600, parseInt($("#cooldownSec").value||"25",10)));
+    //await setSync({ enabled, desiredCounts: desired, notifier: {type, ntfyTopic, discordWebhookUrl}, reload, scroll });
+    await setSync({ enabled, desiredCounts: desired, notifier: {type, ntfyTopic, discordWebhookUrl}, reload, scroll, cooldownSec });
     showSaved();
   };
 
@@ -559,6 +563,7 @@
     $("#scrollMin").addEventListener("input", debounce(savePrefs, 300));
     $("#scrollMax").addEventListener("input", debounce(savePrefs, 300));
     $("#scrollSmooth").addEventListener("change", savePrefs);
+    $("#cooldownSec").addEventListener("input", debounce(savePrefs, 300)); // ★追加
 
     const tbtn = document.getElementById("testNtfy");
     if (tbtn && !tbtn.dataset.bound){
