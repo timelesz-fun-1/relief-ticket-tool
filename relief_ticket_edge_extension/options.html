@@ -172,6 +172,21 @@
     </div>
     <p class="hint">対象イベントページで、選択済みの「日付・会場」に購入ボタンが見つからない場合、指定範囲でランダム秒リロードします。エラー画面（502/504/アクセス集中）は短い間隔で再試行します。</p>
   </section>
+<!-- クールダウン設定 -->
+  <section>
+    <h2>クールダウン秒（同じチケット番号の再試行までの待ち時間）</h2>
+    <h3><font color="red">※ 2025/08/20 既に手続き中の人がいると先に進めなくなったため、同一チケットのクリックに</font>
+    <h3><font color="red">　 一定のクールタイムを設けるよう修正しました。</font></h3>
+    <div class="form-group">
+      <label for="cooldownSec">
+        クールダウン時間（秒）
+      </label>
+      <input id="cooldownSec" type="number" min="5" max="600" step="1" class="form-control" />
+      <small class="form-text text-muted">
+        「購入手続き中」で一覧に戻されるケースの連打・通知連発を防止します。<br>
+      </small>
+    </div>
+  </section>
 
   <section>
     <h2>タブ起動（監視を始める）</h2>
