@@ -6,7 +6,7 @@
     notifier: { type: "ntfy", ntfyTopic: "relief-ticket", discordWebhookUrl: "" },
     reload: { enabled: true, minSec: 3, maxSec: 7 },
     scroll: { enabled: true, minPx: 100, maxPx: 5000, smooth: true },
-    cooldownSec: 25            // ★追加: クールダウン秒
+    cooldownSec: 25            // ★クールダウン秒
   };
   function getSync(){ return new Promise(r=>chrome.storage.sync.get(defaultsSync, r)); }
   function getLocal(keys){ return new Promise(r=>chrome.storage.local.get(keys, r)); }
@@ -81,50 +81,6 @@
     return '';
   }
 
-  // デスクトップ通知
-  function desktopNotify(info){
-    try{
-      const title = `RELIEF: ${info.artist ? info.artist + " - " : ""}${info.datetime}`;
-      const body =
-        `${info.venue}\n` +
-        (info.desiredLabel ? `選択枚数: ${info.desiredLabel}\n` : '') +
-        (info.url ? info.url : '');
-      chrome.runtime?.sendMessage({
-        type: "desktopNotify",
-        payload: { title, message: body.trim(), url: info.url || location.href }
-      });
-    } catch(e) { console.warn("[desktopNotify error]", e); }
-  }
-
-  // 通知（ntfy / Discord + デスクトップ）
-  async function notify(info, settings){
-    const lines = [];
-    if (info.artist) lines.push(`アーティスト: ${info.artist}`);
-    lines.push(`日時: ${info.datetime}`);
-    lines.push(`会場: ${info.venue}`);
-    if (info.desiredLabel) lines.push(`選択枚数: ${info.desiredLabel}`);
-    if (info.availableOptionsText) lines.push(`枚数候補: ${info.availableOptionsText}`);
-    if (info.url) lines.push(`URL: ${info.url}`);
-    if (Array.isArray(info.altUrls) && info.altUrls.length){
-      const brief = info.altUrls.slice(0, 2).map(u => `${u.label}: ${u.url}`).join('\n');
-      lines.push(`他の枚数URL:\n${brief}${info.altUrls.length>2?' …他':''}`);
-    }
-    const msg = lines.join('\n');
-
-    try {
-      if (settings.notifier?.type === "ntfy") {
-        const topic = (settings.notifier.ntfyTopic || "relief-ticket").trim();
-        await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, { method:"POST", body: msg });
-      } else if (settings.notifier?.type === "discord" && settings.notifier.discordWebhookUrl) {
-        await fetch(settings.notifier.discordWebhookUrl, {
-          method:"POST", headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ content: "```" + msg + "```" })
-        });
-      }
-    } catch (e) { console.warn("[通知失敗]", e); }
-    desktopNotify(info);
-  }
-
   // option -> /checkout/attention/{tno}?h=...&commit=commit
   function optionToCheckoutUrl(opt){
     const tno = opt?.getAttribute('data-ticket-no');
@@ -155,7 +111,16 @@
     return opt?.getAttribute('data-ticket-no') || null;
   }
 
-  // 1行購入処理
+  // attemptMeta 保存（bg.js が attention完了で通知に使用）
+  async function saveAttemptMeta(tno, meta){
+    if (!tno) return;
+    const l = await getLocal(["attemptMeta"]);
+    const map = l.attemptMeta || {};
+    map[tno] = meta;
+    await setLocal({ attemptMeta: map });
+  }
+
+  // 1行購入処理（通知はしない／メタのみ保存）
   async function autoBuyForWrap(wrap, settings, selectedShows, desiredOpt, cooldownSec){
     const select = findSelect(wrap);
     if (!wrap || !select || !desiredOpt) return;
@@ -182,15 +147,19 @@
                         .map(o => ({ label: (o.innerText||'').trim(), url: optionToCheckoutUrl(o) }))
                         .filter(x => x.url);
 
-    await notify({
-      artist, datetime, venue,
+    // ★通知はここではしない → bg.js 側で attention 完了時のみ通知
+    await saveAttemptMeta(tno, {
+      tno,
+      artist,
+      datetime,
+      venue,
       desiredLabel: (desiredOpt.innerText||'').trim(),
       availableOptionsText: opts.map(o=>o.innerText.trim()).join(', '),
       url: desiredUrl || location.href,
       altUrls
-    }, settings);
+    });
 
-    // 新DOM: form submit / 旧DOM: ボタン or 直リンク
+    // 新DOM: form submit / 旧DOM: ボタン or 直遷移
     select.value = desiredOpt.value;
     select.dispatchEvent(new Event('change', { bubbles:true }));
     await sleep(350);
