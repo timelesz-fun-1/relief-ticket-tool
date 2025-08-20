@@ -9,7 +9,8 @@
     "activeTab",
     "scripting",
     "tabs",
-    "windows"
+    "windows",
+    "webNavigation" 
   ],
   "host_permissions": [
     "https://relief-ticket.jp/*",
